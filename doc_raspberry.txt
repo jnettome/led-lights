@@ -1,0 +1,50 @@
+# raspberry pi
+
+raspberry pi os 64 bit
+
+user jnettome
+pass 1234
+
+ssh
+
+default hostname: pixta.local
+
+default wifi connected: ap 602 5g
+
+
+
+# pin out
+
+https://www.raspberrypi.com/documentation/computers/images/GPIO-Pinout-Diagram-2.png
+
+Driver Controlador RGB P9813 para Leds e Fitas de Led
+https://www.usinainfo.com.br/1028074-infografico/driver-controlador-rgb-p9813-para-leds-e-fitas-de-led.jpg
+
+#raspberry saida
+
+
+- gpio 12 (pwm0) 32 -> amarelo
+- ground 34 -> marrom
+- gpio 13 pwm1 33 -> laranja
+- 5v power 2 -> roxo
+
+
+# protoboard do driver led
+
+-d33 - cinza - cin -> clock ?
+-d32 - roxo - cin -> data ?
+azul - vcc
+branco - gnd
+
+
+
+
+# final rasp
+
+- laranja no preto/cinza -> pwm0 gpio 12 32 -> clock
+- amarelo no roxo -> pwm1 gpio 13 33 -> data
+- roxo no azul
+- marrom no branc
+
+
+marrom roxo amarelo laranjao

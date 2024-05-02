@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ESP32 BLE LED Control</title>
+</head>
+<body>
+  <h1>ESP32 BLE LED Control</h1>
+  <label for="ble-status">BLE Status:</label>
+  <span id="ble-status">Disconnected</span><br><br>
+  <label for="led-switch">LED:</label>
+  <input type="checkbox" id="led-switch"><br><br>
+  
+  <script>
+    let bleDevice;
+    let characteristic;
+    let ledSwitch = document.getElementById('led-switch');
+    let bleStatus = document.getElementById('ble-status');
+
+    function connect() {
+      bleStatus.innerText = "Connecting...";
+      navigator.bluetooth.requestDevice({
+          filters: [{
+              services: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b']
+          }]
+      })
+      .then(device => {
+          bleDevice = device;
+          return device.gatt.connect();
+      })
+      .then(server => server.getPrimaryService('4fafc201-1fb5-459e-8fcc-c5c9c331914b'))
+      .then(service => service.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a8'))
+      .then(char => {
+          characteristic = char;
+          bleStatus.innerText = "Connected";
+          ledSwitch.addEventListener('change', toggleLED);
+          // Read initial state of LED from characteristic
+          return characteristic.readValue();
+      })
+      .then(value => {
+          let isLEDOn = value.getUint8(0) === 1;
+          ledSwitch.checked = isLEDOn;
+      })
+      .catch(error => {
+          console.error('Error: ', error);
+          bleStatus.innerText = "Disconnected";
+      });
+    }
+
+    function toggleLED() {
+      let value = ledSwitch.checked ? Uint8Array.of(1) : Uint8Array.of(0);
+      characteristic.writeValue(value);
+    }
+
+    function disconnect() {
+      if (!bleDevice || !bleDevice.gatt.connected) return;
+      bleDevice.gatt.disconnect();
+      bleStatus.innerText = "Disconnected";
+    }
+
+    window.onload = function() {
+      document.getElementById('connect-btn').addEventListener('click', connect);
+      document.getElementById('disconnect-btn').addEventListener('click', disconnect);
+    };
+  </script>
+
+  <button id="connect-btn">Connect</button>
+  <button id="disconnect-btn" disabled>Disconnect</button>
+</body>
+</html>
