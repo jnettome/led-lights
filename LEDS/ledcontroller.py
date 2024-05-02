@@ -1,6 +1,8 @@
 import time
 import math
 
+from ledstrip import LEDStrip
+
 class LEDController:
     def __init__(self, clk_pin, dat_pin, debug=False):
         self.debug = debug

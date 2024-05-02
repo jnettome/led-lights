@@ -1,5 +1,5 @@
 
-from ledstrip import LEDStrip
+
 from ledcontroller import LEDController
 
 # GPIO pins for CLK and DAT
