@@ -2,6 +2,7 @@ import time
 import math
 
 from ledstrip import LEDStrip
+import os
 
 class LEDController:
     def __init__(self, clk_pin, dat_pin, debug=False):
@@ -37,7 +38,7 @@ class LEDController:
             hex_color = "#{:02x}{:02x}{:02x}".format(*self.static_color)
             print("\033[48;2;{};{};{}m Static color set to: {} \033[0m".format(*self.static_color, hex_color))
             if not self.debug:
-                self.strip.set_colour_rgb(*self.static_color)
+                self.strip.setcolourrgb(*self.static_color)
             self.color_set = True
 
     def color_cycle_mode(self):
@@ -56,7 +57,7 @@ class LEDController:
                 hex_color = "#{:02x}{:02x}{:02x}".format(*transition_color)
                 print("\033[48;2;{};{};{}m Color transitioned to: {} \033[0m".format(*transition_color, hex_color))
                 if not self.debug:
-                    self.strip.set_colour_rgb(*transition_color)
+                    self.strip.setcolourrgb(*transition_color)
                 time.sleep(transition_interval)
 
     def breathing_mode(self):
@@ -67,18 +68,30 @@ class LEDController:
         hex_color = "#{:02x}{:02x}{:02x}".format(*adjusted_color)
         print("\033[48;2;{};{};{}m Breathing mode: brightness {:.2f}, color: {} \033[0m".format(*adjusted_color, brightness, hex_color))
         if not self.debug:
-            self.strip.set_colour_rgb(*adjusted_color)
+            self.strip.setcolourrgb(*adjusted_color)
 
     def run(self):
         try:
             while True:
+                # check if a temp file exists to change mode
+                try:
+                    with open("temp.txt", "r") as f:
+                        self.switch_mode()
+                        f.close()
+                        # remove the temp file
+                        os.remove("temp.txt")
+                except FileNotFoundError:
+                    pass
+
                 if self.mode == self.MODES["STATIC_COLOR"]:
                     self.static_color_mode()
+                    time.sleep(1)
                 elif self.mode == self.MODES["COLOR_CYCLE"]:
                     self.color_cycle_mode()
+                    time.sleep(1)
                 elif self.mode == self.MODES["BREATHING"]:
                     self.breathing_mode()
-                time.sleep(1)
+                    time.sleep(0.1)
         except KeyboardInterrupt:
             print("Program exited gracefully")
         finally:

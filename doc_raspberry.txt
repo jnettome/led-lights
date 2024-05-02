@@ -48,3 +48,10 @@ branco - gnd
 
 
 marrom roxo amarelo laranjao
+
+
+
+
+- preto no 3v - 1
+- branco no ground - 9
+- cinza no gpio 17 - 11

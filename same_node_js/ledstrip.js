@@ -1,17 +1,25 @@
-const { Chip, Line } = require("node-libgpiod");
+const rpio = require('rpio');
+const CLK_PIN = 13;
+const DAT_PIN = 12;
 
+// LEDStrip
 class LEDStrip {
     constructor(clock, data, debug = false) {
-        this.clockLine = new Line(new Chip(0), clock, Line.LINE_REQ_DIR_OUT);
-        this.dataLine = new Line(new Chip(0), data, Line.LINE_REQ_DIR_OUT);
+        this.clockPin = clock;
+        this.dataPin = data;
         this.delay = 0.0001; // Add a small delay to stabilize signal
         this.debug = debug;
+
+        // Initialize GPIO pins
+        rpio.init({ gpiomem: false, mapping: 'gpio'});
+        rpio.open(this.clockPin, rpio.OUTPUT, rpio.LOW);
+        rpio.open(this.dataPin, rpio.OUTPUT, rpio.LOW);
     }
 
     sendClock() {
-        this.clockLine.setValue(0);
+        rpio.write(this.clockPin, rpio.LOW);
         setTimeout(() => {
-            this.clockLine.setValue(1);
+            rpio.write(this.clockPin, rpio.HIGH);
             if (this.debug) {
                 console.log('Clock pulse sent');
             }
@@ -20,7 +28,7 @@ class LEDStrip {
 
     send32Zero() {
         for (let i = 0; i < 32; i++) {
-            this.dataLine.setValue(0);
+            rpio.write(this.dataPin, rpio.LOW);
             this.sendClock();
         }
         if (this.debug) {
@@ -34,7 +42,7 @@ class LEDStrip {
         }
         this.send32Zero();
         for (let i = 0; i < 32; i++) {
-            this.dataLine.setValue((dx & 0x80000000) ? 1 : 0);
+            rpio.write(this.dataPin, (dx & 0x80000000) ? rpio.HIGH : rpio.LOW);
             dx <<= 1;
             this.sendClock();
         }
@@ -93,8 +101,8 @@ class LEDStrip {
 
     cleanup() {
         this.setColourOff();
-        this.clockLine.release();
-        this.dataLine.release();
+        rpio.close(this.clockPin);
+        rpio.close(this.dataPin);
         if (this.debug) {
             console.log('GPIO cleaned up');
         }
@@ -102,3 +110,7 @@ class LEDStrip {
 }
 
 module.exports = LEDStrip;
+
+// Usage example:
+// const strip = new LEDStrip(CLK_PIN, DAT_PIN, true);
+// strip.setColourRGB(255, 0, 0); // Set color to red

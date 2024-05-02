@@ -3,7 +3,7 @@ const app = express();
 const port = 3000; // Port where the server will listen
 
 const LEDController = require('./ledcontroller.js');
-const controller = new LEDController(13, 12, true);
+const controller = new LEDController(33, 32, false);
 
 controller.run(); // Start the mode run loop
 
