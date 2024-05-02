@@ -1,23 +1,17 @@
-const Gpio = require('onoff').Gpio;
-const CLK_PIN = 13;
-const DAT_PIN = 12;
+const { Chip, Line } = require("node-libgpiod");
 
-// LEDStrip
-// Example usage:
-// const strip = new LEDStrip(CLK_PIN, DAT_PIN, true);
-// strip.setColourRGB(255, 0, 0); // Set color to red
 class LEDStrip {
     constructor(clock, data, debug = false) {
-        this.clockPin = new Gpio(clock, 'out');
-        this.dataPin = new Gpio(data, 'out');
+        this.clockLine = new Line(new Chip(0), clock, Line.LINE_REQ_DIR_OUT);
+        this.dataLine = new Line(new Chip(0), data, Line.LINE_REQ_DIR_OUT);
         this.delay = 0.0001; // Add a small delay to stabilize signal
         this.debug = debug;
     }
 
     sendClock() {
-        this.clockPin.writeSync(0);
+        this.clockLine.setValue(0);
         setTimeout(() => {
-            this.clockPin.writeSync(1);
+            this.clockLine.setValue(1);
             if (this.debug) {
                 console.log('Clock pulse sent');
             }
@@ -26,7 +20,7 @@ class LEDStrip {
 
     send32Zero() {
         for (let i = 0; i < 32; i++) {
-            this.dataPin.writeSync(0);
+            this.dataLine.setValue(0);
             this.sendClock();
         }
         if (this.debug) {
@@ -40,7 +34,7 @@ class LEDStrip {
         }
         this.send32Zero();
         for (let i = 0; i < 32; i++) {
-            this.dataPin.writeSync((dx & 0x80000000) ? 1 : 0);
+            this.dataLine.setValue((dx & 0x80000000) ? 1 : 0);
             dx <<= 1;
             this.sendClock();
         }
@@ -99,8 +93,8 @@ class LEDStrip {
 
     cleanup() {
         this.setColourOff();
-        this.clockPin.unexport();
-        this.dataPin.unexport();
+        this.clockLine.release();
+        this.dataLine.release();
         if (this.debug) {
             console.log('GPIO cleaned up');
         }
